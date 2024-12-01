@@ -21,6 +21,7 @@ import java.util.Optional;
 @Service
 @Transactional
 public class PostService {
+
     @Autowired
     private final UserRepository userRepository;
     @Autowired
