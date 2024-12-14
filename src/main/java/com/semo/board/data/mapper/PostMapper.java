@@ -17,14 +17,13 @@ import java.util.stream.Collectors;
 public interface PostMapper {
 
     PostMapper INSTANCE = Mappers.getMapper(PostMapper.class);
-//    @Mapping(source = "title", target = "title")
-//    @Mapping(source = "content", target = "content")
-//    @Mapping(source = "createDate", target = "content")
-//    @Mapping(source = "updateDate", target = "content")
-//    @Mapping(source = "userEntity", target = "content")
-//    @Mapping(source = "commentCount", target = "content")
-//    @Mapping(source = "content", target = "content")
-@Mapping(source = "userEntity", target = "user")
+    @Mapping(source = "id", target = "id")
+    @Mapping(source = "title", target = "title")
+    @Mapping(source = "content", target = "content")
+    @Mapping(source = "createDate", target = "createDate")
+    @Mapping(source = "updateDate", target = "updateDate")
+    @Mapping(source = "commentCount", target = "commentCount")
+    @Mapping(source = "userEntity", target = "user")
     PostResponseDTO toDTO(PostEntity entity);
 
     List<PostResponseDTO> toDTOList(List<PostEntity> entities);
