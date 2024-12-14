@@ -13,12 +13,18 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Mapper
+@Mapper(componentModel = "spring") // or default
 public interface PostMapper {
 
     PostMapper INSTANCE = Mappers.getMapper(PostMapper.class);
-    @Mapping(source = "title", target = "title")
-    @Mapping(source = "content", target = "content")
+//    @Mapping(source = "title", target = "title")
+//    @Mapping(source = "content", target = "content")
+//    @Mapping(source = "createDate", target = "content")
+//    @Mapping(source = "updateDate", target = "content")
+//    @Mapping(source = "userEntity", target = "content")
+//    @Mapping(source = "commentCount", target = "content")
+//    @Mapping(source = "content", target = "content")
+@Mapping(source = "userEntity", target = "user")
     PostResponseDTO toDTO(PostEntity entity);
 
     List<PostResponseDTO> toDTOList(List<PostEntity> entities);

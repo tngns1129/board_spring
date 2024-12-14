@@ -5,6 +5,7 @@ import com.semo.board.data.response.CommentResponseDTO;
 import com.semo.board.entity.CommentEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 import org.springframework.data.domain.Page;
 
@@ -21,4 +22,6 @@ public interface CommentMapper {
         return comment.map(this::toDTO);
     }
 
+    @Mapping(target = "id", ignore = true)
+    void updateEntityFromDto(CommentRequestDTO commentRequestDTO, @MappingTarget CommentEntity entity);
 }

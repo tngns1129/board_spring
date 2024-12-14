@@ -1,5 +1,6 @@
 package com.semo.board.controller;
 
+import com.semo.board.SecurityUtils;
 import com.semo.board.data.request.CommentRequestDTO;
 import com.semo.board.service.CommentService;
 import org.slf4j.Logger;
@@ -9,10 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +30,7 @@ public class CommentController {
     @ResponseBody
     public ResponseEntity<?> getComment(
             Pageable pageable,
-            @RequestParam(required = true) Long postId
+            @RequestParam(required = true, value = "postId") Long postId
     ){
         try{
             Map<String, Object> result = new HashMap<>();
@@ -54,11 +52,11 @@ public class CommentController {
     @ResponseBody
     public ResponseEntity<?> postComment(
             @RequestBody CommentRequestDTO requestDTO,
-            @RequestParam(required = true) Long postId,
-            @RequestParam(required = true) String userName
+            @RequestParam(required = true, value = "postId") Long postId
 
             ){
         try{
+            String userName = SecurityUtils.getCurrentUsername();
             Map<String, Object> result = commentService.postComment(requestDTO, postId, userName);
             return ResponseEntity.ok(result);
         }catch (Exception e) {
@@ -73,10 +71,12 @@ public class CommentController {
     @RequestMapping(method = PUT)
     @ResponseBody
     public ResponseEntity<?> updateComment(
-
+            @RequestBody CommentRequestDTO requestDTO,
+            @RequestParam(required = true) Long commentId
     ){
         try{
-            Map<String, Object> result = commentService.updateComment();
+            String userName = SecurityUtils.getCurrentUsername();
+            Map<String, Object> result = commentService.updateComment(commentId,userName,requestDTO);
             return ResponseEntity.ok(result);
         }catch (Exception e) {
             // 예외 처리 로직 추가
@@ -90,10 +90,11 @@ public class CommentController {
     @RequestMapping(method = DELETE)
     @ResponseBody
     public ResponseEntity<?> deleteComment(
-
+            @RequestParam(required = true) Long commentId
     ){
         try{
-            Map<String, Object> result = commentService.deleteComment();
+            String userName = SecurityUtils.getCurrentUsername();
+            Map<String, Object> result = commentService.deleteComment(commentId, userName);
             return ResponseEntity.ok(result);
         }catch (Exception e) {
             // 예외 처리 로직 추가
