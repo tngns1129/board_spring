@@ -134,4 +134,26 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResult);
         }
     }
+
+    @RequestMapping(value = "/block", method = DELETE)
+    @ResponseBody
+    public ResponseEntity<?> unblockPost(
+            @RequestParam(required = true, value = "postId") Long postId
+    ){
+        try {
+            String userName = SecurityUtils.getCurrentUsername();
+            blockService.unblockPost(userName, postId);
+            Map<String, Object> result = new HashMap<>();
+            result.put("code", 0);
+            result.put("message", "success");
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            // 예외 처리 로직 추가
+            Map<String, Object> errorResult = new HashMap<>();
+            errorResult.put("code",-1);
+            errorResult.put("message","error occurred: " + e.getMessage());
+            log.error("Controller error: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResult);
+        }
+    }
 }

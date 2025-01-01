@@ -41,8 +41,14 @@ public class BlockService {
     }
 
     // 게시물 차단 해제
-    public void unblockPost(UserEntity user, PostEntity post) {
-        Optional<BlockEntity> block = blockRepository.findByUserAndPost(user, post);
+    public void unblockPost(String userName, Long postId) {
+        UserEntity user = userRepository.findByUserName(userName);
+        Optional<PostEntity> post = postRepository.findById(postId);
+        PostEntity postEntity = null;
+        if(post.isPresent()){
+            postEntity = post.get();
+        }
+        Optional<BlockEntity> block = blockRepository.findByUserAndPost(user, postEntity);
         block.ifPresent(blockRepository::delete);
     }
 

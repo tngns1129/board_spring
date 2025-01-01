@@ -36,26 +36,25 @@ public class PostService {
         return PostMapper.INSTANCE.toDTOPage(entityPage);
     }
 
-    public Page<PostResponseDTO> getAllPostNotBlocked(String username, Pageable pageable){
+    public Page<PostResponseDTO> getAllPostNotBlocked(String username, Pageable pageable) {
 
         UserEntity user = userRepository.findByUserName(username);
-
-        // 모든 삭제되지 않은 게시물 가져오기
-        Page<PostEntity> entityPage = postRepository.findAllByDeletedFalse(pageable);
 
         // 차단된 게시물 ID 가져오기
         List<Long> blockedPostIds = blockService.getBlockedPostsByUser(user).stream()
                 .map(PostEntity::getId)
                 .collect(Collectors.toList());
 
-        // 차단된 게시물 제외
-        List<PostResponseDTO> filteredPosts = entityPage.getContent().stream()
-                .filter(post -> !blockedPostIds.contains(post.getId())) // 차단된 게시물 제외
+        // 차단된 게시물을 제외한 삭제되지 않은 게시물 가져오기
+        Page<PostEntity> entityPage = postRepository.findAllByDeletedFalseAndIdNotIn(pageable, blockedPostIds);
+
+        // 반환할 DTO로 변환
+        List<PostResponseDTO> result = entityPage.getContent().stream()
                 .map(PostMapper.INSTANCE::toDTO) // PostEntity를 PostResponseDTO로 변환
                 .collect(Collectors.toList());
 
-        // 필터링된 결과를 Page 형태로 반환
-        return new PageImpl<>(filteredPosts, pageable, entityPage.getTotalElements() - blockedPostIds.size());
+        // 필터링된 게시물을 반환
+        return new PageImpl<>(result, pageable, entityPage.getTotalElements());
     }
 
     public Map<String, Object> writePost(String username, PostRequestDTO postRequestDTO){
