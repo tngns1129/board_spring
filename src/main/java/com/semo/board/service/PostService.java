@@ -14,8 +14,10 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -26,12 +28,36 @@ public class PostService {
     private final UserRepository userRepository;
     @Autowired
     private final PostRepository postRepository;
+    @Autowired
+    private final BlockService blockService;
 
     public Page<PostResponseDTO> getAllPost(Pageable pageable){
         Page<PostEntity> entityPage = postRepository.findAllByDeletedFalse(pageable);
         return PostMapper.INSTANCE.toDTOPage(entityPage);
-
     }
+
+    public Page<PostResponseDTO> getAllPostNotBlocked(String username, Pageable pageable){
+
+        UserEntity user = userRepository.findByUserName(username);
+
+        // 모든 삭제되지 않은 게시물 가져오기
+        Page<PostEntity> entityPage = postRepository.findAllByDeletedFalse(pageable);
+
+        // 차단된 게시물 ID 가져오기
+        List<Long> blockedPostIds = blockService.getBlockedPostsByUser(user).stream()
+                .map(PostEntity::getId)
+                .collect(Collectors.toList());
+
+        // 차단된 게시물 제외
+        List<PostResponseDTO> filteredPosts = entityPage.getContent().stream()
+                .filter(post -> !blockedPostIds.contains(post.getId())) // 차단된 게시물 제외
+                .map(PostMapper.INSTANCE::toDTO) // PostEntity를 PostResponseDTO로 변환
+                .collect(Collectors.toList());
+
+        // 필터링된 결과를 Page 형태로 반환
+        return new PageImpl<>(filteredPosts, pageable, entityPage.getTotalElements() - blockedPostIds.size());
+    }
+
     public Map<String, Object> writePost(String username, PostRequestDTO postRequestDTO){
         HashMap<String, Object> result = new HashMap<>();
         try{

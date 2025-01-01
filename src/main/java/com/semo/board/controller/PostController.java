@@ -3,11 +3,13 @@ package com.semo.board.controller;
 import com.semo.board.SecurityUtils;
 import com.semo.board.data.mapper.PostMapper;
 import com.semo.board.data.request.PostRequestDTO;
+import com.semo.board.service.BlockService;
 import com.semo.board.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.core.Block;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +32,8 @@ public class PostController {
     private static final Logger log = LoggerFactory.getLogger(PostController.class);
     @Autowired
     private final PostService postService;
+    @Autowired
+    private final BlockService blockService;
 
     @RequestMapping(method = GET)
     @ResponseBody
@@ -37,10 +41,11 @@ public class PostController {
             Pageable pageable
     ){
         try{
+            String userName = SecurityUtils.getCurrentUsername();
             Map<String, Object> result = new HashMap<>();
             result.put("code", 0);
             result.put("message", "success search");
-            result.put("data", postService.getAllPost(pageable));
+            result.put("data", postService.getAllPostNotBlocked(userName,pageable));
             return ResponseEntity.ok(result);
         }catch (Exception e) {
             // 예외 처리 로직 추가
@@ -73,7 +78,7 @@ public class PostController {
     @RequestMapping(method = DELETE)
     @ResponseBody
     public ResponseEntity<?> deletePost(
-            @RequestParam Long postId
+            @RequestParam(required = true, value = "postId") Long postId
     ){
         try {
             String userName = SecurityUtils.getCurrentUsername();
@@ -92,11 +97,33 @@ public class PostController {
     @ResponseBody
     public ResponseEntity<?> updatePost(
             @RequestBody PostRequestDTO requestDTO,
-            @RequestParam Long postId
+            @RequestParam(required = true, value = "postId") Long postId
     ){
         try {
             String userName = SecurityUtils.getCurrentUsername();
             Map<String, Object> result = postService.updatePost(postId, userName, requestDTO);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            // 예외 처리 로직 추가
+            Map<String, Object> errorResult = new HashMap<>();
+            errorResult.put("code",-1);
+            errorResult.put("message","error occurred: " + e.getMessage());
+            log.error("Controller error: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResult);
+        }
+    }
+
+    @RequestMapping(value = "/block", method = POST)
+    @ResponseBody
+    public ResponseEntity<?> blockPost(
+            @RequestParam(required = true, value = "postId") Long postId
+    ){
+        try {
+            String userName = SecurityUtils.getCurrentUsername();
+            blockService.blockPost(userName, postId);
+            Map<String, Object> result = new HashMap<>();
+            result.put("code", 0);
+            result.put("message", "success");
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             // 예외 처리 로직 추가
